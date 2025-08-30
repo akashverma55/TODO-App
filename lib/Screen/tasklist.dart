@@ -93,6 +93,7 @@ class _TasklistState extends State<Tasklist> {
                           time: data[index]["time"],
                           date: data[index]["date"],
                         )));
+                        print(data[index]["date"]);
                       },
                       onDelete: () {
                         print("Deleting first task");

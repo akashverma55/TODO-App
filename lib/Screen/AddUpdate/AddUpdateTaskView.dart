@@ -22,13 +22,28 @@ class Addtask extends StatefulWidget {
 }
 
 class _AddtaskState extends State<Addtask> {
+  late TextEditingController _taskCtrl;
+  late TextEditingController _descCtrl;
+  DateTime? selectedDateTime;
+
+  @override
+  void initState(){
+    super.initState();
+    _taskCtrl = TextEditingController(text: widget.title??"");
+    _descCtrl = TextEditingController(text: widget.description??"");
+    print("${widget.date} in the Edit" );
+
+    if(widget.isEdit==true && widget.date!=null && widget.time!=null){
+      final date = DateFormat("MMM d, yyyy").parse(widget.date!);
+      final time = DateFormat("h:mm a").parse(widget.time!);
+
+      selectedDateTime = DateTime(date.year,date.month,date.day,time.hour,time.minute);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController taskCtrl = TextEditingController(text: widget.title?? "");
-    TextEditingController descCtrl = TextEditingController(text: widget.description?? "");
-    DateTime? selectedDate; 
-    TimeOfDay? selectedTime;
     bool isEdit = widget.isEdit?? false;
     String btnName= isEdit? "Update":"Add";
     return Scaffold(
@@ -46,36 +61,51 @@ class _AddtaskState extends State<Addtask> {
                 ],
               ),
               SizedBox(height: 80),
-              TextFieldWidget(ctrl: taskCtrl, isTask: true),
+              TextFieldWidget(ctrl: _taskCtrl, isTask: true),
               SizedBox(height: 20),
-              TextFieldWidget(ctrl: descCtrl, isTask: false),
+              TextFieldWidget(ctrl: _descCtrl, isTask: false),
               SizedBox(height: 50),
               InkWell(
                 onTap: () async{
                   final DateTime? picked = await showDatePicker(
                     context: context, 
+                    initialDate: selectedDateTime?? DateTime.now(),
                     firstDate: DateTime(2000), 
                     lastDate: DateTime(2100)
                   );
-                  if(picked!=null && picked!= selectedDate){
+                  if(picked!=null){
                     setState(() {
-                      selectedDate = picked;
+                      final time = selectedDateTime?? DateTime.now();
+                      selectedDateTime=DateTime(
+                        picked.year,
+                        picked.month,
+                        picked.day,
+                        time.hour,
+                        time.minute
+                      );
                     });
                   }
                 },
-                child: TimeDateWidget(selectedDate: selectedDate,isDate: true),
+                child: TimeDateWidget(selectedDateTime: selectedDateTime,isDate: true),
               ),
               SizedBox(height: 20),
               InkWell(
                 onTap: () async{
-                  final TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                  if(picked!=null && picked!= selectedTime){
+                  final TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(selectedDateTime??DateTime.now()));
+                  if(picked!=null){
                     setState(() {
-                      selectedTime = picked;
+                      final date = selectedDateTime?? DateTime.now();
+                      selectedDateTime = DateTime(
+                        date.year,
+                        date.month,
+                        date.day,
+                        picked.hour,
+                        picked.minute
+                      );
                     });
                   }
                 },
-                child: TimeDateWidget(selectedTime: selectedTime,isDate: false),
+                child: TimeDateWidget(selectedDateTime: selectedDateTime,isDate: false),
               ),
               SizedBox(height: 100),
               Row(
@@ -106,7 +136,9 @@ class BottomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: (){}, 
+      onPressed: (){
+        isCancel? Navigator.pop(context):print("Add");
+      }, 
       style: ElevatedButton.styleFrom(
         backgroundColor: isCancel? Colors.black: Colors.teal,
         foregroundColor: Colors.white,
@@ -122,13 +154,11 @@ class BottomButton extends StatelessWidget {
 class TimeDateWidget extends StatelessWidget {
   const TimeDateWidget({
     super.key,
-    this.selectedDate,
-    this.selectedTime,
+    this.selectedDateTime,
     required this.isDate
   });
 
-  final DateTime? selectedDate;
-  final TimeOfDay? selectedTime;
+  final DateTime? selectedDateTime;
   final bool isDate;
 
   @override
@@ -144,10 +174,10 @@ class TimeDateWidget extends StatelessWidget {
           Icon(isDate? Icons.calendar_month: Icons.access_time,color: Colors.tealAccent),
           const SizedBox(width: 10,),
           isDate? Text(
-            selectedDate==null? "Select Date":DateFormat("dd MMMM, yyyy").format(selectedDate!),
+            selectedDateTime==null? "Select Date":DateFormat("dd MMMM, yyyy").format(selectedDateTime!),
           ):
           Text(
-            selectedTime==null? "Select Time":MaterialLocalizations.of(context).formatTimeOfDay(selectedTime!),
+            selectedDateTime==null? "Select Time":DateFormat("h:mm a").format(selectedDateTime!)
           )
         ],
       ),
