@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mytodoapp/Screen/AddUpdate/AddTask.dart';
+import 'package:mytodoapp/Screen/AddUpdate/AddUpdateTaskView.dart';
 
 class Tasklist extends StatefulWidget {
   const Tasklist({super.key});
@@ -68,7 +68,7 @@ class _TasklistState extends State<Tasklist> {
         child: Column(
           children: [
             SizedBox(height: 80),
-            TaskListHeading(taskCompleted: completedCount, dataLength:data.length),
+            TaskListHeading(taskCompleted: completedCount, dataLength: data.length),
             MyDivider(),
             Expanded(
               child: ListView.builder(
@@ -83,17 +83,20 @@ class _TasklistState extends State<Tasklist> {
                       border: Border.all(width: 1.5, color: Colors.white),
                     ),
                     child: TaskCard(
-                      title: data[index]["title"],
-                      description:data[index]["description"],
-                      date: data[index]["date"],
-                      time: data[index]["time"],
+                      data: data[index],
                       onEdit: () {
                         print("Editing first task");
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> Addtask(
+                          isEdit: true, 
+                          title:data[index]["title"],
+                          description:data[index]["description"],
+                          time: data[index]["time"],
+                          date: data[index]["date"],
+                        )));
                       },
                       onDelete: () {
                         print("Deleting first task");
                       },
-                      isCompleted: data[index]["isCompleted"],
                     ),
                   );
                 },
@@ -123,9 +126,9 @@ class MyDivider extends StatelessWidget {
     return SizedBox(
       height: 80,
       child: Divider(
-        indent: 50,
+        indent: 80,
         // endIndent: 100,
-        thickness: 2,
+        thickness: 4,
         color: Colors.white,
       ),
     );
@@ -133,23 +136,15 @@ class MyDivider extends StatelessWidget {
 }
 
 class TaskCard extends StatefulWidget {
-  final String title;
-  final String description;
-  final String date;
-  final String time;
+  final Map<String,dynamic> data;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final bool isCompleted;
 
   const TaskCard({
     super.key,
-    required this.title,
-    required this.description,
-    required this.date,
-    required this.time,
+    required this.data,
     required this.onEdit,
     required this.onDelete,
-    this.isCompleted = false,
   });
 
   @override
@@ -162,23 +157,22 @@ class _TaskCardState extends State<TaskCard> {
   @override
   void initState() {
     super.initState();
-    _isChecked = widget.isCompleted;
+    _isChecked = widget.data["isCompleted"];
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 4.0,
-      // margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 1. Checkbox
             Transform.scale(
-              scale: 1.5, // Makes the checkbox slightly larger
+              scale: 1.5, 
               child: Checkbox(
                 value: _isChecked,
                 onChanged: (bool? value) {
@@ -186,7 +180,7 @@ class _TaskCardState extends State<TaskCard> {
                     _isChecked = value ?? false;
                   });
                 },
-                activeColor: Colors.teal,
+                activeColor: Colors.tealAccent,
                 shape: CircleBorder(),
               ),
             ),
@@ -199,7 +193,7 @@ class _TaskCardState extends State<TaskCard> {
                 children: [
                   // Title
                   Text(
-                    widget.title,
+                    widget.data["title"],
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18.0,
@@ -213,7 +207,7 @@ class _TaskCardState extends State<TaskCard> {
 
                   // Description
                   Text(
-                    widget.description,
+                    widget.data["description"],
                     style: TextStyle(
                       fontSize: 14.0,
                       color: Colors.grey[600],
@@ -228,20 +222,20 @@ class _TaskCardState extends State<TaskCard> {
                   Row(
                     children: [
                       Icon(
-                        Icons.calendar_today,
+                        Icons.calendar_month,
                         size: 16.0,
                         color: Colors.grey,
                       ),
                       const SizedBox(width: 4.0),
                       Text(
-                        widget.date,
+                        widget.data["date"],
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                       const SizedBox(width: 16.0),
                       Icon(Icons.access_time, size: 16.0, color: Colors.grey),
                       const SizedBox(width: 4.0),
                       Text(
-                        widget.time,
+                        widget.data["time"],
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                     ],
